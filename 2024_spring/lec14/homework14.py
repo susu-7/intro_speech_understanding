@@ -1,48 +1,59 @@
-import datetime, gtts, bs4, random, speech_recognition
+import datetime
+from gtts import gTTS
+import random
+import calendar
+import speech_recognition as sr
 
 def what_time_is_it(lang, filename):
-    '''
-    Tell me what time it is.
-    
-    Parameters:
-    lang (str) - language in which to speak
-    filename (str) - the filename into which the audio should be recorded
-    '''
-    raise RuntimeError("You need to write this part!")
-    
+    now = datetime.datetime.now()
+    time_str = now.strftime("%H:%M")
+    tts = gTTS(text=time_str, lang=lang)
+    tts.save(filename)
+
 def tell_me_a_joke(lang, audiofile):
-    '''
-    Tell me a joke.
+    if lang == 'en':
+        jokes_file = 'jokes_en.txt'
+    elif lang == 'ja':
+        jokes_file = 'jokes_ja.txt'
+    elif lang == 'zh':
+        jokes_file = 'jokes_zh.txt'
+    else:
+        raise ValueError("Unsupported language")
+
+    with open(jokes_file, 'r', encoding='utf-8') as file:
+        jokes = file.readlines()
     
-    @params:
-    filename (str) - filename containing the database of jokes
-    lang (str) - language
-    audiofile (str) - audiofile in which to record the joke
-    '''
-    raise RuntimeError("You need to write this part!")
+    joke = random.choice(jokes).strip()
+    tts = gTTS(text=joke, lang=lang)
+    tts.save(audiofile)
 
 def what_day_is_it(lang, audiofile):
-    '''
-    Tell me what day it is.
-
-    @params:
-    lang (str) - language in which to record the date
-    audiofile (str) - filename in which to read the date
-    
-    @returns:
-    url (str) - URL that you can look up in order to see the calendar for this month and year
-    '''
-    raise RuntimeError("You need to write this part!")
+    now = datetime.datetime.now()
+    day_str = now.strftime("%A, %d %B %Y")
+    tts = gTTS(text=day_str, lang=lang)
+    tts.save(audiofile)
+    url = f"https://www.timeanddate.com/calendar/?year={now.year}&month={now.month}"
+    return url
 
 def personal_assistant(lang, filename):
-    '''
-    Listen to the user, and respond to one of three types of requests:
-    What time is it?
-    What day is it?
-    Tell me a joke!
+    recognizer = sr.Recognizer()
+    with sr.Microphone() as source:
+        print("Say something!")
+        audio = recognizer.listen(source)
     
-    @params:
-    lang (str) - language
-    filename (str) - filename in which to store the result
-    '''
-    raise RuntimeError("You need to write this part!")
+    try:
+        command = recognizer.recognize_google(audio, language=lang)
+        print("You said: " + command)
+        
+        if "time" in command.lower():
+            what_time_is_it(lang, filename)
+        elif "day" in command.lower():
+            what_day_is_it(lang, filename)
+        elif "joke" in command.lower():
+            tell_me_a_joke(lang, filename)
+        else:
+            print("Sorry, I didn't understand that.")
+    except sr.UnknownValueError:
+        print("Could not understand audio")
+    except sr.RequestError as e:
+        print("Could not request results; {0}".format(e))
