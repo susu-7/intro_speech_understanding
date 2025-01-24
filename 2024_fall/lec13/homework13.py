@@ -12,8 +12,13 @@ def extract_stories_from_NPR_text(text):
       Each story should be a tuple of (title, teaser), where the title and teaser are
       both strings.  If the story has no teaser, its teaser should be an empty string.
     '''
-    raise RuntimeError('You need to write this part!')
-    return stories
+    npr_soup = bs4.Beautifulsoup(text, "html.parser")
+    stories = []
+    for div_tag in npr_soup.find_all('div','story-text'):
+        titletag = div_tag.find('h3,'title')
+        teasertag = div_tag.find('p,'tesaer')
+
+    if 
     
 def read_nth_story(stories, n, filename):
     '''
